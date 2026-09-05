@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NOC Incident Triage Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+  <header class="max-w-7xl mx-auto flex justify-between items-center pb-6 border-b border-slate-700">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-cyan-400">TELECOM NOC INCIDENT TRIAGE</h1>
+      <p class="text-xs text-slate-400">Deterministic Topology Correlator + Gemini Grounded Runbook Agent</p>
+    </div>
+    <div class="space-x-3">
+      <button onclick="runScenario('fiber_cut_p1')" class="px-4 py-2 bg-cyan-700 hover:bg-cyan-600 rounded text-sm font-semibold transition">Replay Normal P1 (Fiber Cut)</button>
+      <button onclick="runScenario('edge_cases')" class="px-4 py-2 bg-amber-700 hover:bg-amber-600 rounded text-sm font-semibold transition">Replay Edge Cases (Noise + Zero-Day)</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+      <h2 class="text-md font-semibold mb-3 text-slate-300">Isolated Noise (Not Forced)</h2>
+      <div id="noiseList" class="space-y-2 text-xs text-slate-400">No active stream ingested.</div>
+    </div>
+
+    <div class="col-span-2 bg-slate-800 p-4 rounded-lg border border-slate-700">
+      <h2 class="text-md font-semibold mb-3 text-slate-300">Correlated Incidents & Grounded Actions</h2>
+      <div id="incidentList" class="space-y-4 text-sm text-slate-400">Click a replay button to process an alert stream.</div>
+    </div>
+  </main>
+
+  <script>
+    async function runScenario(scenarioKey) {
+      document.getElementById('incidentList').innerHTML = '<p class="text-cyan-400 text-sm animate-pulse">Running topology correlation & local RAG...</p>';
+      const res = await fetch(`/api/triage/${scenarioKey}`, { method: 'POST' });
+      const data = await res.json();
+
+      const noiseDiv = document.getElementById('noiseList');
+      if (data.noise.length === 0) {
+        noiseDiv.innerHTML = '<p class="italic text-slate-500">No unassigned noise.</p>';
+      } else {
+        noiseDiv.innerHTML = data.noise.map(n => `
+          <div class="p-2.5 bg-slate-700/50 rounded border border-slate-600">
+            <span class="text-amber-400 font-mono font-bold">[${n.code}]</span> <span class="text-slate-200 font-medium">${n.device}</span>
+            <p class="mt-1 text-slate-300">${n.message}</p>
+          </div>
+        `).join('');
+      }
+
+      const incDiv = document.getElementById('incidentList');
+      incDiv.innerHTML = data.triage_results.map(r => `
+        <div class="p-4 rounded-lg border ${r.status === 'RESOLVED_BY_RUNBOOK' ? 'border-emerald-500 bg-slate-900/80' : 'border-rose-500 bg-slate-900/80'}">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-sm text-cyan-300">${r.incident_id}</span>
+            <span class="text-xs px-2 py-0.5 rounded font-semibold ${r.status === 'RESOLVED_BY_RUNBOOK' ? 'bg-emerald-950 text-emerald-300 border border-emerald-700' : 'bg-rose-950 text-rose-300 border border-rose-700'}">${r.status}</span>
+          </div>
+          ${r.matched_runbook_id ? `<p class="text-xs text-emerald-400 mb-1"><strong>Runbook Cited:</strong> ${r.matched_runbook_id} (${r.cited_sections.join(', ')})</p>` : ''}
+          ${r.escalation_reason ? `<p class="text-xs text-rose-400 mb-1"><strong>Escalation Reason:</strong> ${r.escalation_reason}</p>` : ''}
+          <div class="text-sm text-slate-100 mt-2 bg-slate-800 p-3 rounded border border-slate-700">
+            <strong>Recommended Action:</strong> ${r.recommended_action}
+          </div>
+          <p class="text-xs text-slate-400 mt-2"><strong>Evidence Summary:</strong> ${r.evidence_summary}</p>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
