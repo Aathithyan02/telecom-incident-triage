@@ -1,0 +1,12 @@
+{
+  "nodes": {
+    "CR-01": {"tier": "core", "site": "Chennai-DC", "children": ["AGG-01", "AGG-02"]},
+    "AGG-01": {"tier": "aggregation", "site": "Chennai-North", "children": ["SW-101", "SW-102", "BNG-01"]},
+    "AGG-02": {"tier": "aggregation", "site": "Chennai-South", "children": ["SW-201", "SW-202"]},
+    "SW-101": {"tier": "access", "site": "Ambattur", "children": []},
+    "SW-102": {"tier": "access", "site": "Avadi", "children": []},
+    "SW-201": {"tier": "access", "site": "Guindy", "children": []},
+    "SW-202": {"tier": "access", "site": "Velachery", "children": []},
+    "BNG-01": {"tier": "gateway", "site": "Chennai-North", "children": []}
+  }
+}

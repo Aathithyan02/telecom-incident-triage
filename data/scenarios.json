@@ -1,0 +1,20 @@
+{
+  "fiber_cut_p1": {
+    "name": "Normal Scenario: Core Fiber Cut (DWDM)",
+    "alerts": [
+      {"id": "AL-101", "timestamp": "2026-09-05T09:10:01Z", "device": "CR-01", "code": "OPT_LOS", "severity": "CRITICAL", "message": "Loss of Optical Signal on Interface TenGigE0/0/1"},
+      {"id": "AL-102", "timestamp": "2026-09-05T09:10:04Z", "device": "CR-01", "code": "BGP_DOWN", "severity": "CRITICAL", "message": "BGP Peer 10.254.0.2 State Changed to Down"},
+      {"id": "AL-103", "timestamp": "2026-09-05T09:10:12Z", "device": "AGG-01", "code": "NODE_UNREACHABLE", "severity": "HIGH", "message": "No heartbeat received from AGG-01 via primary link"},
+      {"id": "AL-104", "timestamp": "2026-09-05T09:10:15Z", "device": "SW-101", "code": "NODE_UNREACHABLE", "severity": "HIGH", "message": "Access node unreachable"},
+      {"id": "AL-105", "timestamp": "2026-09-05T09:10:16Z", "device": "SW-102", "code": "NODE_UNREACHABLE", "severity": "HIGH", "message": "Access node unreachable"}
+    ]
+  },
+  "edge_cases": {
+    "name": "Edge Cases: Unrelated Noise & Zero-Day Anomaly",
+    "alerts": [
+      {"id": "AL-901", "timestamp": "2026-09-05T09:15:00Z", "device": "SW-202", "code": "NTP_SYNC_DRIFT", "severity": "LOW", "message": "NTP server stratum 3 offset exceeds threshold"},
+      {"id": "AL-902", "timestamp": "2026-09-05T09:16:30Z", "device": "5G-UPF-01", "code": "MALFORMED_GTPU_PACKETS", "severity": "CRITICAL", "message": "Unknown GTP-U protocol header format causing buffer saturation"},
+      {"id": "AL-903", "timestamp": "2026-09-05T09:16:35Z", "device": "5G-UPF-01", "code": "TEMP_SENSOR_CRIT", "severity": "CRITICAL", "message": "ASIC heat sink temperature exceeded 98C"}
+    ]
+  }
+}
