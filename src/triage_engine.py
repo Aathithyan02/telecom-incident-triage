@@ -1,5 +1,9 @@
 import os
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from google import genai
 from google.genai import types
 from src.schemas import IncidentCluster, TriageResult
@@ -8,8 +12,12 @@ from src.retriever import LocalRunbookStore
 retriever = LocalRunbookStore()
 
 def _call_gemini_json(client: genai.Client, prompt: str) -> dict:
-    """Invokes Gemini with standard fallbacks across supported API models."""
-    candidate_models = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+    """Calls Gemini using gemini-3.6-flash and parses clean JSON."""
+    candidate_models = [
+        "gemini-3.6-flash",
+        "gemini-3.1-pro-preview",
+        "gemini-2.5-flash"
+    ]
     last_err = None
 
     for model_name in candidate_models:
@@ -22,7 +30,14 @@ def _call_gemini_json(client: genai.Client, prompt: str) -> dict:
                     temperature=0.0
                 )
             )
-            return json.loads(response.text)
+            raw = response.text.strip()
+            if raw.startswith("```json"):
+                raw = raw[7:]
+            if raw.startswith("```"):
+                raw = raw[3:]
+            if raw.endswith("```"):
+                raw = raw[:-3]
+            return json.loads(raw.strip())
         except Exception as e:
             last_err = e
             continue
@@ -32,7 +47,12 @@ def _call_gemini_json(client: genai.Client, prompt: str) -> dict:
 def triage_incident(incident: IncidentCluster) -> TriageResult:
     query = f"Incident on {incident.primary_device}. Codes: {', '.join(incident.alert_codes)}. Hypothesis: {incident.root_cause_hypothesis}"
     matched = retriever.search(query)
-    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable is not set on this machine.")
+        
+    client = genai.Client(api_key=api_key)
 
     if matched:
         prompt = f"""

@@ -4,6 +4,9 @@ import numpy as np
 import faiss
 from google import genai
 from typing import List, Dict, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class LocalRunbookStore:
     def __init__(self, runbooks_dir: str = "data/runbooks"):

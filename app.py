@@ -1,5 +1,9 @@
 import os
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -21,7 +25,10 @@ async def trigger_triage(scenario_key: str):
     raw_alerts = [Alert(**item) for item in SCENARIOS[scenario_key]["alerts"]]
     clusters, noise = correlate_alerts(raw_alerts)
     
-    triage_results = [triage_incident(c) for c in clusters]
+    try:
+        triage_results = [triage_incident(c) for c in clusters]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Triage execution failed: {str(e)}")
         
     return {
         "scenario": SCENARIOS[scenario_key]["name"],
